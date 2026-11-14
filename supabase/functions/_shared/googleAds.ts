@@ -1,7 +1,7 @@
 // Cliente mínimo da API do Google Ads (REST). Uma consulta por conta por checagem,
 // para economizar a cota diária de operações.
 
-const API_VERSION = Deno.env.get("GOOGLE_ADS_API_VERSION") ?? "v25";
+const API_VERSION = Deno.env.get("GOOGLE_ADS_API_VERSION") ?? "v23";
 
 export interface CampaignRow {
   id: string;
