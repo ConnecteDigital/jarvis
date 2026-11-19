@@ -135,6 +135,29 @@ export async function gaqlSearch(
   return rows.slice(0, maxRows);
 }
 
+/** Alteração na conta (mutate). Só é chamada depois da confirmação do Gabriel. */
+export async function gadsMutate(
+  accessToken: string,
+  customerId: string,
+  service: "campaigns" | "campaignBudgets" | "campaignCriteria",
+  operations: unknown[],
+): Promise<unknown> {
+  const res = await fetch(
+    `https://googleads.googleapis.com/${API_VERSION}/customers/${customerId}/${service}:mutate`,
+    {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+        "content-type": "application/json",
+        "login-customer-id": need("GOOGLE_ADS_LOGIN_CUSTOMER_ID"),
+      },
+      body: JSON.stringify({ operations }),
+    },
+  );
+  if (!res.ok) throw new Error(`Google Ads (${res.status}): ${(await res.text()).slice(0, 600)}`);
+  return await res.json();
+}
+
 function need(name: string): string {
   const value = Deno.env.get(name)?.trim(); // tira espaço ou quebra de linha colados junto
   if (!value) throw new Error(`Variável ${name} ausente`);
