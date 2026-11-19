@@ -4,6 +4,7 @@
 
 import { authorized, db, json } from "../_shared/db.ts";
 import { fetchAccountSnapshot, getAccessToken, type AccountSnapshot } from "../_shared/googleAds.ts";
+import { sendTelegram, telegramChatId } from "../_shared/telegram.ts";
 import { type Account, evaluate, type PreviousCheck, withinHours } from "../_shared/rules.ts";
 
 Deno.serve(async (req) => {
@@ -55,6 +56,7 @@ Deno.serve(async (req) => {
   }
 
   const report: Record<string, unknown>[] = [];
+  const news: string[] = []; // linhas do aviso desta rodada
 
   for (const account of accounts) {
     let snapshot: AccountSnapshot | null = null;
@@ -119,7 +121,10 @@ Deno.serve(async (req) => {
         summary: f.summary,
         details: f.details,
       });
-      if (!insertError) opened.push(f.ruleKey);
+      if (!insertError) {
+        opened.push(f.ruleKey);
+        news.push(`${rule.level === "critical" ? "🔴 CRÍTICO" : "🟡 Atenção"}: ${f.summary}`);
+      }
       else if (insertError.code !== "23505") console.error("alerta:", insertError.message);
     }
 
@@ -142,13 +147,23 @@ Deno.serve(async (req) => {
           .update({ status: "resolved", resolved_at: now.toISOString() })
           .eq("id", alert.id);
         resolved.push(rule.key);
+        news.push(`✅ Resolvido na ${account.name}: ${rule.key}`);
       }
     }
 
     report.push({ account: account.name, ok: error === null, error, opened, resolved });
   }
 
-  return json({ checked: accounts.length, at: now.toISOString(), report });
+  // Aviso no Telegram só quando algo mudou nesta rodada.
+  let telegram: string = "nada a avisar";
+  if (news.length > 0) {
+    const chatId = await telegramChatId(supabase, settings);
+    telegram = chatId
+      ? (await sendTelegram(chatId, `Jarvis\n\n${news.join("\n")}`) ? "enviado" : "falhou")
+      : "sem conversa: mande um oi para o bot";
+  }
+
+  return json({ checked: accounts.length, at: now.toISOString(), telegram, report });
 });
 
 /** O site responde? Qualquer resposta abaixo de 500 conta como no ar. */

@@ -45,6 +45,7 @@ Ficam em Supabase > Edge Functions > Secrets. Nunca neste repositório.
 | `GOOGLE_ADS_CLIENT_SECRET` | OAuth do projeto "Connect Digital Ads" |
 | `GOOGLE_ADS_REFRESH_TOKEN` | Acesso à MCC |
 | `GOOGLE_ADS_LOGIN_CUSTOMER_ID` | ID da MCC, sem hífens |
+| `TELEGRAM_BOT_TOKEN` | Token do bot do Telegram (avisos de texto) |
 | `GOOGLE_ADS_DEVELOPER_TOKEN` | Opcional; o acesso atual funciona sem ele |
 | `GOOGLE_ADS_API_VERSION` | Opcional, padrão `v23` |
 
