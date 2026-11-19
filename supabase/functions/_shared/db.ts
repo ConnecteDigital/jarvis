@@ -10,7 +10,7 @@ export function db(): SupabaseClient {
 
 /** Confere o segredo compartilhado enviado no cabeçalho Authorization. */
 export function authorized(req: Request, envName: string): boolean {
-  const secret = Deno.env.get(envName);
+  const secret = Deno.env.get(envName)?.trim();
   if (!secret) return false;
   const header = req.headers.get("authorization") ?? "";
   return header === `Bearer ${secret}`;

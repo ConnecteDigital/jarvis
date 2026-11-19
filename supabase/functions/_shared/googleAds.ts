@@ -65,7 +65,7 @@ export async function fetchAccountSnapshot(
     "content-type": "application/json",
     "login-customer-id": need("GOOGLE_ADS_LOGIN_CUSTOMER_ID"),
   };
-  const devToken = Deno.env.get("GOOGLE_ADS_DEVELOPER_TOKEN");
+  const devToken = Deno.env.get("GOOGLE_ADS_DEVELOPER_TOKEN")?.trim();
   if (devToken) headers["developer-token"] = devToken;
 
   const campaigns: CampaignRow[] = [];
@@ -109,7 +109,7 @@ export async function fetchAccountSnapshot(
 }
 
 function need(name: string): string {
-  const value = Deno.env.get(name);
+  const value = Deno.env.get(name)?.trim(); // tira espaço ou quebra de linha colados junto
   if (!value) throw new Error(`Variável ${name} ausente`);
   return value;
 }

@@ -15,7 +15,7 @@ export async function telegramChatId(
   const saved = settings.telegram_chat_id;
   if (saved) return String(saved);
 
-  const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
+  const token = Deno.env.get("TELEGRAM_BOT_TOKEN")?.trim();
   if (!token) return null;
   const res = await fetch(api(token, "getUpdates"));
   if (!res.ok) return null;
@@ -31,7 +31,7 @@ export async function telegramChatId(
 }
 
 export async function sendTelegram(chatId: string, text: string): Promise<boolean> {
-  const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
+  const token = Deno.env.get("TELEGRAM_BOT_TOKEN")?.trim();
   if (!token) return false;
   const res = await fetch(api(token, "sendMessage"), {
     method: "POST",
