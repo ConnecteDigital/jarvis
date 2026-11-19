@@ -108,6 +108,33 @@ export async function fetchAccountSnapshot(
   };
 }
 
+/** Consulta GAQL genérica (somente leitura). Devolve no máximo maxRows linhas. */
+export async function gaqlSearch(
+  accessToken: string,
+  customerId: string,
+  query: string,
+  maxRows = 200,
+): Promise<Record<string, unknown>[]> {
+  const headers: Record<string, string> = {
+    authorization: `Bearer ${accessToken}`,
+    "content-type": "application/json",
+    "login-customer-id": need("GOOGLE_ADS_LOGIN_CUSTOMER_ID"),
+  };
+  const rows: Record<string, unknown>[] = [];
+  let pageToken: string | undefined;
+  do {
+    const res = await fetch(
+      `https://googleads.googleapis.com/${API_VERSION}/customers/${customerId}/googleAds:search`,
+      { method: "POST", headers, body: JSON.stringify({ query, pageToken }) },
+    );
+    if (!res.ok) throw new Error(`Google Ads (${res.status}): ${(await res.text()).slice(0, 600)}`);
+    const data = await res.json();
+    rows.push(...(data.results ?? []));
+    pageToken = data.nextPageToken;
+  } while (pageToken && rows.length < maxRows);
+  return rows.slice(0, maxRows);
+}
+
 function need(name: string): string {
   const value = Deno.env.get(name)?.trim(); // tira espaço ou quebra de linha colados junto
   if (!value) throw new Error(`Variável ${name} ausente`);
