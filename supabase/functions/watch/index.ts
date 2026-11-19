@@ -2,15 +2,15 @@
 // abre alertas novos e resolve os que deixaram de valer.
 // Ainda não liga: a ligação entra quando o número do Jarvis estiver cadastrado.
 
-import { authorized, db, json } from "../_shared/db.ts";
+import { cronAuthorized, db, json } from "../_shared/db.ts";
 import { fetchAccountSnapshot, getAccessToken, type AccountSnapshot } from "../_shared/googleAds.ts";
 import { sendTelegram, telegramChatId } from "../_shared/telegram.ts";
 import { type Account, evaluate, type PreviousCheck, withinHours } from "../_shared/rules.ts";
 
 Deno.serve(async (req) => {
-  if (!authorized(req, "CRON_SECRET")) return json({ error: "não autorizado" }, 401);
-
   const supabase = db();
+  if (!(await cronAuthorized(req, supabase))) return json({ error: "não autorizado" }, 401);
+
   const now = new Date();
 
   const [accountsRes, rulesRes, overridesRes, settingsRes] = await Promise.all([

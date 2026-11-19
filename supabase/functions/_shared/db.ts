@@ -16,6 +16,17 @@ export function authorized(req: Request, envName: string): boolean {
   return header === `Bearer ${secret}`;
 }
 
+/**
+ * Autoriza a chamada do vigia: aceita o segredo CRON_SECRET ou o segredo gerado
+ * dentro do banco (settings.cron_secret), usado pelo agendamento.
+ */
+export async function cronAuthorized(req: Request, supabase: SupabaseClient): Promise<boolean> {
+  if (authorized(req, "CRON_SECRET")) return true;
+  const header = req.headers.get("authorization") ?? "";
+  const { data } = await supabase.from("settings").select("value").eq("key", "cron_secret").maybeSingle();
+  return !!data?.value && header === `Bearer ${data.value}`;
+}
+
 export function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
